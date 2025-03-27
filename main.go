@@ -6,6 +6,7 @@ import (
 	deepseek "github.com/cohesion-org/deepseek-go"
 	"github.com/gocolly/colly"
 	"os"
+	"path/filepath"
 )
 
 // TODO : fix the systemprompt so it can handle a blogpost text, maybe to paraphrased it?
@@ -20,6 +21,8 @@ const systemPrompt = `You are an AI transformation agent tasked with converting 
 
 Follow these guidelines to generate a comprehensive, coherent, and outstanding blog post from the provided YouTube captions text.
 Your final output should be **only** the paraphrased text, styled in Markdown format.`
+
+const baseDirDownload = "captions"
 
 type Paragraph string
 type Blogpost struct {
@@ -69,4 +72,21 @@ func main() {
 	// Print the response
 	output := response.Choices[0].Message.Content
 	fmt.Println("Response:", output)
+	filename := fmt.Sprintf("%s/%s.md", baseDirDownload, blogPost.Title)
+	file, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	_, err = file.WriteString(string(output))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("finished, the output md file is saved in captions/%v.md\n", blogPost.Title)
+	targetFile := fmt.Sprintf("captions_%s.xml", blogPost.Title)
+	path := filepath.Join("captions", targetFile)
+	err = os.Remove(path)
+	if err != nil {
+		fmt.Println("fail to delete redundant filefile", blogPost.Title)
+	}
 }
