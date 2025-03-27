@@ -32,7 +32,6 @@ func Test_main(t *testing.T) {
 				t.Errorf("expected %s but got %s", tt.expected, Title)
 			}
 			fmt.Println(Body)
-
 		})
 	}
 }
