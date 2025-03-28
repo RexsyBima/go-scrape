@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/gocolly/colly"
+	"os"
 	// "strings"
 	"testing"
 )
@@ -32,6 +32,21 @@ func Test_main(t *testing.T) {
 				t.Errorf("expected %s but got %s", tt.expected, Title)
 			}
 			fmt.Println(Body)
+		})
+	}
+}
+
+func TestCreateFolder(t *testing.T) {
+	tests := []struct {
+		folderName string // description of this test case
+	}{{"captions"}, {"images"}}
+	for _, tt := range tests {
+		t.Run(tt.folderName, func(t *testing.T) {
+			err := os.MkdirAll(tt.folderName, 0755)
+			if err != nil {
+				fmt.Println(err)
+			}
+
 		})
 	}
 }

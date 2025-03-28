@@ -6,21 +6,27 @@ import (
 	deepseek "github.com/cohesion-org/deepseek-go"
 	"github.com/gocolly/colly"
 	"os"
-	"path/filepath"
 )
 
 // TODO : fix the systemprompt so it can handle a blogpost text, maybe to paraphrased it?
 
-const systemPrompt = `You are an AI transformation agent tasked with converting raw YouTube caption texts about knowledge into a polished, engaging, and readable blog post. Your responsibilities include:
-- **Paraphrasing**: Transform the original caption text into fresh, original content while preserving the key information and insights.
-- **Structure**: Organize the content into a well-defined structure featuring a captivating introduction, clearly delineated subheadings in the body, and a strong conclusion.
-- **Engagement**: Ensure the blog post is outstanding by using a professional yet conversational tone, creating smooth transitions, and emphasizing clarity and readability.
-- **Retention of Key Elements**: Maintain all essential elements and core ideas from the original text, while enhancing the narrative to captivate the reader.
-- **Adaptation**: Simplify technical details if necessary, ensuring that the transformed content is accessible to a broad audience without losing depth or accuracy.
-- **Quality**: Aim for a high-quality article that is both informative and engaging, ready for publication.
+const systemPrompt = `**Revised System Prompt for Blog Post Transformation:**
 
-Follow these guidelines to generate a comprehensive, coherent, and outstanding blog post from the provided YouTube captions text.
-Your final output should be **only** the paraphrased text, styled in Markdown format.`
+You are an AI content refinement agent specialized in transforming raw, draft-style blog post text into a polished, engaging, and reader-friendly article. Your responsibilities include:  
+
+- **Enhancement**: Rephrase the original content to improve clarity, originality, and flow while preserving core ideas and critical information. Eliminate redundancy and tighten verbose sections.  
+- **Structure**: Organize the draft into a logical, scannable format with a compelling introduction, descriptive subheadings (H2/H3), and a concise conclusion that reinforces key takeaways.  
+- **Tone & Engagement**: Adopt a professional yet approachable voice. Use storytelling elements, rhetorical questions, or relatable examples to connect with readers. Ensure smooth transitions between paragraphs.  
+- **Audience Adaptation**: Simplify jargon or overly technical terms for broader accessibility without sacrificing depth. Adjust explanations to suit both casual readers and informed audiences.  
+- **SEO & Readability**: Optimize sentence length and paragraph breaks for readability. Integrate relevant keywords naturally (if implied by the draft). Use bullet points, numbered lists, or bold text to highlight key points.  
+- **Accuracy**: Verify that all facts, data, and insights from the original draft are retained and presented with precision.  
+
+**Output Guidelines**:  
+- Return **only** the refined blog post in Markdown format.  
+- Use headers, lists, and formatting tools to improve visual flow.  
+- Avoid promotional language, markdown tables, or external links unless specified in the input.  
+
+Transform the provided draft into a high-quality, publication-ready article that informs, engages, and adds value to the reader.`
 
 const baseDirDownload = "captions"
 
@@ -50,10 +56,10 @@ func main() {
 		Body = Paragraph(e.Text)
 	})
 	_ = c.Visit(url)
-	fmt.Println(Body)
+	// fmt.Println(Body)
 	blogPost := createBlogpost(Title, Body)
-	fmt.Println(blogPost.Title)
-	fmt.Println(blogPost.Body)
+	// fmt.Println(blogPost.Title)
+	// fmt.Println(blogPost.Body)
 	client := deepseek.NewClient(os.Getenv("DEEPSEEK_API_KEY"))
 	// Create a chat completion request
 	request := &deepseek.ChatCompletionRequest{
@@ -72,6 +78,7 @@ func main() {
 	// Print the response
 	output := response.Choices[0].Message.Content
 	fmt.Println("Response:", output)
+	err = createFolder(baseDirDownload)
 	filename := fmt.Sprintf("%s/%s.md", baseDirDownload, blogPost.Title)
 	file, err := os.Create(filename)
 	if err != nil {
@@ -83,10 +90,4 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("finished, the output md file is saved in captions/%v.md\n", blogPost.Title)
-	targetFile := fmt.Sprintf("captions_%s.xml", blogPost.Title)
-	path := filepath.Join("captions", targetFile)
-	err = os.Remove(path)
-	if err != nil {
-		fmt.Println("fail to delete redundant filefile", blogPost.Title)
-	}
 }
